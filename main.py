@@ -5,7 +5,7 @@ import datetime
 from telegram import Bot
 
 # Configurações do Bot
-TOKEN = os.getenv("BOT_TOKEN", "7643677472:AAGNI55sGVkPwxan6bPt00atR7nT1BRlhNk")
+TOKEN = os.getenv("BOT_TOKEN", "7438251863:AAH9KEeqTTLMhaP_7XhDLAXs61SBwCXXaog")
 USER = os.getenv("TELEGRAM_USER", "@victor_pinho87")
 bot = Bot(token=TOKEN)
 
