@@ -17,7 +17,6 @@ def send_telegram_message(message):
         print(f"[ERRO] Falha ao enviar mensagem: {e}")
 
 # Buscar moedas em tendência
-
 def fetch_trending_coins():
     url = "https://api.coingecko.com/api/v3/search/trending"
     try:
@@ -25,11 +24,11 @@ def fetch_trending_coins():
         data = response.json()
         coins = data.get("coins", [])
         return [coin["item"] for coin in coins]
-    except:
+    except Exception as e:
+        print(f"[ERRO] Falha ao buscar moedas: {e}")
         return []
 
 # Buscar métricas do Bitcoin
-
 def fetch_bitcoin_price_data():
     url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=10&interval=daily"
     try:
@@ -37,18 +36,17 @@ def fetch_bitcoin_price_data():
         data = response.json()
         prices = [p[1] for p in data["prices"]]
         return prices[-7:]  # últimos 7 dias
-    except:
+    except Exception as e:
+        print(f"[ERRO] Falha ao buscar dados do Bitcoin: {e}")
         return []
 
 # Calcular médias móveis
-
 def moving_average(prices, days):
     if len(prices) < days:
         return None
     return sum(prices[-days:]) / days
 
 # Prever possível cruzamento
-
 def check_moving_average_cross():
     prices = fetch_bitcoin_price_data()
     if len(prices) < 7:
@@ -67,7 +65,6 @@ def check_moving_average_cross():
     return None
 
 # Formatar relatório de moedas
-
 def format_report(coins):
     top_3 = coins[:3]
     boas = [c for c in coins if c.get("market_cap_rank") and c["market_cap_rank"] <= 100]
@@ -76,19 +73,16 @@ def format_report(coins):
     msg = f"\n📊 *Alerta Cripto* – {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
 
     msg += "\n🔥 *Top 3 moedas do momento:*"
-"
     for coin in top_3:
         msg += f"➡️ {coin['name']} ({coin['symbol'].upper()})\n"
 
     if boas:
-        msg += "\n💎 *Moedas boas com volume alto:*
-"
+        msg += "\n💎 *Moedas boas com volume alto:*"
         for coin in boas:
             msg += f"✅ {coin['name']} ({coin['symbol'].upper()})\n"
 
     if shitcoins:
-        msg += "\n💩 *Shitcoins em alta atenção:*
-"
+        msg += "\n💩 *Shitcoins em alta atenção:*"
         for coin in shitcoins:
             msg += f"⚠️ {coin['name']} ({coin['symbol'].upper()})\n"
 
