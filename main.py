@@ -75,7 +75,7 @@ def format_report(coins):
 
     msg = f"\n📊 *Alerta Cripto* – {datetime.datetime.now().strftime('%d/%m/%Y %H:%M')}\n"
 
-    msg += "\n🔥 *Top 3 moedas do momento:*
+    msg += "\n🔥 *Top 3 moedas do momento:*"
 "
     for coin in top_3:
         msg += f"➡️ {coin['name']} ({coin['symbol'].upper()})\n"
