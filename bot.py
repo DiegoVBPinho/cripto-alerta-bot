@@ -9,12 +9,6 @@ from dotenv import load_dotenv
 import telegram
 
 
-from telegram.ext import CommandHandler
-
-def start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Bot de alertas cripto ativo!")
-
-dispatcher.add_handler(CommandHandler('start', start))
 
 # Carregar as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -23,6 +17,14 @@ load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 bot = telegram.Bot(token=TOKEN)
+
+from telegram.ext import CommandHandler
+
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Bot de alertas cripto ativo!")
+
+dispatcher.add_handler(CommandHandler('start', start))
+
 
 # Função para buscar preço do Bitcoin
 def get_bitcoin_price():
