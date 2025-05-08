@@ -1,13 +1,12 @@
 import requests
-import time
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from datetime import datetime
 import logging
 import os
 from dotenv import load_dotenv
 import telegram
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from datetime import datetime
 
 # Carregar as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -82,7 +81,7 @@ async def enviar_alerta():
         # Envia o alerta para o Telegram
         await bot.send_message(chat_id=CHAT_ID, text=mensagem, parse_mode=telegram.ParseMode.MARKDOWN)
     except Exception as e:
-        logging.error(f"Erro ao enviar alerta: {e}")
+        logger.error(f"Erro ao enviar alerta: {e}")
 
 # Agendador (usando AsyncIOScheduler para suportar asyncio)
 async def agendar_alertas():
