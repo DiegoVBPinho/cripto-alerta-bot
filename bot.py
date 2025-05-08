@@ -8,6 +8,14 @@ import os
 from dotenv import load_dotenv
 import telegram
 
+
+from telegram.ext import CommandHandler
+
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Bot de alertas cripto ativo!")
+
+dispatcher.add_handler(CommandHandler('start', start))
+
 # Carregar as variáveis de ambiente do arquivo .env
 load_dotenv()
 
