@@ -1,6 +1,6 @@
 import requests
 import time
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 import logging
 import os
@@ -16,6 +16,11 @@ load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 bot = telegram.Bot(token=TOKEN)
+
+# Configurar logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Função start do bot
 async def start(update: Update, context: CallbackContext):
@@ -59,7 +64,7 @@ def verificar_cruzamento_mm(prices):
     else:
         return "➖ Médias móveis estão se cruzando"
 
-# Mensagem principal do bot
+# Função para enviar alertas
 async def enviar_alerta():
     try:
         preco = get_bitcoin_price()
@@ -68,27 +73,37 @@ async def enviar_alerta():
         altcoins = analisar_altcoins()
 
         mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*"
-
-        mensagem += f"💰 *Bitcoin*: R${preco:,.2f}"
-        mensagem += f"{cruzamento}"
-        mensagem += "🔥 Altcoin com maior engajamento:"
+        mensagem += f"\n💰 *Bitcoin*: R${preco:,.2f}"
+        mensagem += f"\n{cruzamento}"
+        mensagem += "\n🔥 Altcoin com maior engajamento:"
         for moeda in altcoins:
-            mensagem += f"• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%"
+            mensagem += f"\n• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%"
 
+        # Envia o alerta para o Telegram
         await bot.send_message(chat_id=CHAT_ID, text=mensagem, parse_mode=telegram.ParseMode.MARKDOWN)
     except Exception as e:
         logging.error(f"Erro ao enviar alerta: {e}")
 
-# Agendador
-scheduler = BlockingScheduler()
-scheduler.add_job(enviar_alerta, 'interval', hours=4)
-print("✅ Bot iniciado. Enviando alertas a cada 4 horas.")
-enviar_alerta()  # Envia um alerta logo ao iniciar
-scheduler.start()
+# Agendador (usando AsyncIOScheduler para suportar asyncio)
+async def agendar_alertas():
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(enviar_alerta, 'interval', hours=4)
+    scheduler.start()
 
-# Iniciando o bot
-application = Application.builder().token(TOKEN).build()
+# Função principal para iniciar o bot
+async def main():
+    # Criar a aplicação do Telegram
+    application = Application.builder().token(TOKEN).build()
 
-application.add_handler(CommandHandler("start", start))
+    # Adicionar o handler do comando /start
+    application.add_handler(CommandHandler("start", start))
 
-application.run_polling()
+    # Iniciar o agendador de alertas
+    await agendar_alertas()
+
+    # Iniciar o bot
+    await application.run_polling()
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
