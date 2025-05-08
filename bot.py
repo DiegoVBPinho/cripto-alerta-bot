@@ -1,12 +1,12 @@
-
 import requests
 import time
-from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 import logging
 import os
 from dotenv import load_dotenv
 import telegram
+from telegram.ext import Updater, CommandHandler, CallbackContext, Update
 
 # Carregar as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -15,6 +15,19 @@ load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 bot = telegram.Bot(token=TOKEN)
+
+# Função para iniciar o bot
+def start(update: Update, context: CallbackContext):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Bot de alertas cripto ativo!")
+
+# Criação do Updater com o token do bot
+updater = Updater(token=TOKEN, use_context=True)
+
+# Obtendo o dispatcher
+dispatcher = updater.dispatcher
+
+# Adicionando o handler para o comando /start
+dispatcher.add_handler(CommandHandler('start', start))
 
 # Função para buscar preço do Bitcoin
 def get_bitcoin_price():
@@ -62,27 +75,24 @@ def enviar_alerta():
         cruzamento = verificar_cruzamento_mm(historico)
         altcoins = analisar_altcoins()
 
-        mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*
+        mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*"
 
-"
-        mensagem += f"💰 *Bitcoin*: R${preco:,.2f}
-"
-        mensagem += f"{cruzamento}
-
-"
-        mensagem += "🔥 Altcoin com maior engajamento:
-"
+        mensagem += f"💰 *Bitcoin*: R${preco:,.2f}"
+        mensagem += f"{cruzamento}"
+        mensagem += "🔥 Altcoin com maior engajamento:"
         for moeda in altcoins:
-            mensagem += f"• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%
-"
+            mensagem += f"• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%"
 
         bot.send_message(chat_id=CHAT_ID, text=mensagem, parse_mode=telegram.ParseMode.MARKDOWN)
     except Exception as e:
         logging.error(f"Erro ao enviar alerta: {e}")
 
 # Agendador
-scheduler = BlockingScheduler()
+scheduler = BackgroundScheduler()
 scheduler.add_job(enviar_alerta, 'interval', hours=4)
 print("✅ Bot iniciado. Enviando alertas a cada 4 horas.")
 enviar_alerta()  # Envia um alerta logo ao iniciar
 scheduler.start()
+
+# Iniciar o bot
+updater.start_polling()
