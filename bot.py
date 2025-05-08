@@ -62,7 +62,7 @@ def enviar_alerta():
         cruzamento = verificar_cruzamento_mm(historico)
         altcoins = analisar_altcoins()
 
-        mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*
+        mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*"
 
 "
         mensagem += f"💰 *Bitcoin*: R${preco:,.2f}
