@@ -106,4 +106,4 @@ async def main():
 # Remover o uso do asyncio.run(main()) e simplesmente chamar main()
 if __name__ == "__main__":
     import asyncio
-    asyncio.ensure_future(main())  # Isso garante que o loop de eventos do Telegram seja iniciado sem conflito
+    asyncio.run(main())
