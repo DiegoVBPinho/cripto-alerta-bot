@@ -64,17 +64,11 @@ def enviar_alerta():
 
         mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*"
 
-"
-        mensagem += f"💰 *Bitcoin*: R${preco:,.2f}
-"
-        mensagem += f"{cruzamento}
-
-"
-        mensagem += "🔥 Altcoin com maior engajamento:
-"
+        mensagem += f"💰 *Bitcoin*: R${preco:,.2f}"
+        mensagem += f"{cruzamento}"
+        mensagem += "🔥 Altcoin com maior engajamento:"
         for moeda in altcoins:
-            mensagem += f"• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%
-"
+            mensagem += f"• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%"
 
         bot.send_message(chat_id=CHAT_ID, text=mensagem, parse_mode=telegram.ParseMode.MARKDOWN)
     except Exception as e:
