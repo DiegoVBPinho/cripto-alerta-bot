@@ -8,8 +8,6 @@ import os
 from dotenv import load_dotenv
 import telegram
 
-
-
 # Carregar as variáveis de ambiente do arquivo .env
 load_dotenv()
 
@@ -17,14 +15,6 @@ load_dotenv()
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 bot = telegram.Bot(token=TOKEN)
-
-from telegram.ext import CommandHandler
-
-def start(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Bot de alertas cripto ativo!")
-
-dispatcher.add_handler(CommandHandler('start', start))
-
 
 # Função para buscar preço do Bitcoin
 def get_bitcoin_price():
@@ -72,13 +62,19 @@ def enviar_alerta():
         cruzamento = verificar_cruzamento_mm(historico)
         altcoins = analisar_altcoins()
 
-        mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*"
+        mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*
 
-        mensagem += f"💰 *Bitcoin*: R${preco:,.2f}"
-        mensagem += f"{cruzamento}"
-        mensagem += "🔥 Altcoin com maior engajamento:"
+"
+        mensagem += f"💰 *Bitcoin*: R${preco:,.2f}
+"
+        mensagem += f"{cruzamento}
+
+"
+        mensagem += "🔥 Altcoin com maior engajamento:
+"
         for moeda in altcoins:
-            mensagem += f"• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%"
+            mensagem += f"• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%
+"
 
         bot.send_message(chat_id=CHAT_ID, text=mensagem, parse_mode=telegram.ParseMode.MARKDOWN)
     except Exception as e:
