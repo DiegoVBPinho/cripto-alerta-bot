@@ -1,2 +1,0 @@
-# cripto-alerta-bot
-"roda"
