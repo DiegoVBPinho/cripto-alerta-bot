@@ -104,6 +104,9 @@ async def main():
     await application.run_polling()
 
 # Remover o uso do asyncio.run(main()) e simplesmente chamar main()
-if __name__ == "__main__":
-    import asyncio
+import asyncio
+
+try:
+    asyncio.get_running_loop().create_task(main())
+except RuntimeError:
     asyncio.run(main())
