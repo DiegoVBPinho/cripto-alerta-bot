@@ -23,8 +23,7 @@ logger = logging.getLogger(__name__)
 
 # Função start do bot
 async def start(update: Update, context: CallbackContext):
-    # Enviar uma mensagem quando o comando /start for chamado
-    await update.message.reply_text("✅ Bot de alertas cripto ativo! Vou te enviar atualizações sobre criptomoedas.")
+    await update.message.reply_text("✅ Bot de alertas cripto ativo!")
 
 # Função para buscar preço do Bitcoin
 def get_bitcoin_price():
@@ -104,6 +103,7 @@ async def main():
     # Iniciar o bot
     await application.run_polling()
 
+# Remover o uso do asyncio.run(main()) e simplesmente chamar main()
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(main())
+    asyncio.ensure_future(main())  # Isso garante que o loop de eventos do Telegram seja iniciado sem conflito
