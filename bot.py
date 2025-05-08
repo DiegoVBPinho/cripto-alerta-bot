@@ -23,7 +23,8 @@ logger = logging.getLogger(__name__)
 
 # Função start do bot
 async def start(update: Update, context: CallbackContext):
-    await update.message.reply_text("✅ Bot de alertas cripto ativo!")
+    # Enviar uma mensagem quando o comando /start for chamado
+    await update.message.reply_text("✅ Bot de alertas cripto ativo! Vou te enviar atualizações sobre criptomoedas.")
 
 # Função para buscar preço do Bitcoin
 def get_bitcoin_price():
