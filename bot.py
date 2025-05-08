@@ -1,21 +1,28 @@
+
 import requests
 import time
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.blocking import BlockingScheduler
 from datetime import datetime
 import logging
 import os
 from dotenv import load_dotenv
-from telegram import Update, Bot
-from telegram.ext import CommandHandler, CallbackContext, ApplicationBuilder
+import telegram
 
-# Carregar variáveis de ambiente
+
+from telegram.ext import CommandHandler
+
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Bot de alertas cripto ativo!")
+
+dispatcher.add_handler(CommandHandler('start', start))
+
+# Carregar as variáveis de ambiente do arquivo .env
 load_dotenv()
+
+# Agora você pode acessar a chave de API e o chat_id de maneira segura
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
-
-# Função /start
-async def start(update: Update, context: CallbackContext):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="✅ Bot de alertas cripto ativo!")
+bot = telegram.Bot(token=TOKEN)
 
 # Função para buscar preço do Bitcoin
 def get_bitcoin_price():
@@ -24,7 +31,7 @@ def get_bitcoin_price():
     data = r.json()
     return data["bitcoin"]["brl"]
 
-# Histórico de preços para médias móveis
+# Função para buscar histórico de preços (para calcular médias)
 def get_bitcoin_history():
     url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=brl&days=30"
     r = requests.get(url)
@@ -32,7 +39,7 @@ def get_bitcoin_history():
     prices = [p[1] for p in data["prices"]]
     return prices
 
-# Análise fake de altcoins
+# Simulação de análise de altcoins com "potencial de pump"
 def analisar_altcoins():
     altcoins = [
         {"nome": "dogecoin", "engajamento": 87},
@@ -42,7 +49,7 @@ def analisar_altcoins():
     destaque = sorted(altcoins, key=lambda x: x["engajamento"], reverse=True)[:1]
     return destaque
 
-# Verificar cruzamento de médias móveis
+# Cruzamento de médias móveis (simples de 7 e 25 dias)
 def verificar_cruzamento_mm(prices):
     if len(prices) < 25:
         return "Dados insuficientes para médias móveis"
@@ -55,45 +62,29 @@ def verificar_cruzamento_mm(prices):
     else:
         return "➖ Médias móveis estão se cruzando"
 
-# Função principal de alerta
-async def enviar_alerta(bot: Bot):
+# Mensagem principal do bot
+def enviar_alerta():
     try:
         preco = get_bitcoin_price()
         historico = get_bitcoin_history()
         cruzamento = verificar_cruzamento_mm(historico)
         altcoins = analisar_altcoins()
 
-        mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*\n"
-        mensagem += f"💰 *Bitcoin*: R${preco:,.2f}\n"
-        mensagem += f"{cruzamento}\n\n"
-        mensagem += "🔥 Altcoin com maior engajamento:\n"
-        for moeda in altcoins:
-            mensagem += f"• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%\n"
+        mensagem = f"📈 *Alerta Cripto – {datetime.now().strftime('%d/%m %H:%M')}*"
 
-        await bot.send_message(chat_id=CHAT_ID, text=mensagem, parse_mode="Markdown")
+        mensagem += f"💰 *Bitcoin*: R${preco:,.2f}"
+        mensagem += f"{cruzamento}"
+        mensagem += "🔥 Altcoin com maior engajamento:"
+        for moeda in altcoins:
+            mensagem += f"• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%"
+
+        bot.send_message(chat_id=CHAT_ID, text=mensagem, parse_mode=telegram.ParseMode.MARKDOWN)
     except Exception as e:
         logging.error(f"Erro ao enviar alerta: {e}")
 
-# Inicializar o bot com Application (v20+)
-async def main():
-    application = ApplicationBuilder().token(TOKEN).build()
-
-    # Comando /start
-    application.add_handler(CommandHandler("start", start))
-
-    # Agendador separado (APS)
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: application.bot.loop.create_task(enviar_alerta(application.bot)), 'interval', hours=4)
-    scheduler.start()
-
-    # Envia alerta imediato ao iniciar
-    await enviar_alerta(application.bot)
-
-    # Inicia polling
-    print("✅ Bot iniciado. Escutando comandos e enviando alertas a cada 4 horas.")
-    await application.run_polling()
-
-# Executar
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+# Agendador
+scheduler = BlockingScheduler()
+scheduler.add_job(enviar_alerta, 'interval', hours=4)
+print("✅ Bot iniciado. Enviando alertas a cada 4 horas.")
+enviar_alerta()  # Envia um alerta logo ao iniciar
+scheduler.start()
