@@ -3,7 +3,6 @@ import logging
 import os
 from dotenv import load_dotenv
 import telegram
-from telegram.ext import Application, CommandHandler, CallbackContext, Updater
 from telegram.ext import Application, CommandHandler, CallbackContext
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
@@ -22,7 +21,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 # Comando /start
-async def start(update: Update, context: CallbackContext):
+async def start(update, context):
     await update.message.reply_text("✅ Bot de alertas cripto ativo!")
 
 # Preço atual do Bitcoin
