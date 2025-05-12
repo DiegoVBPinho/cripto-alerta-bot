@@ -8,15 +8,15 @@ from telegram.ext import Application, CommandHandler, CallbackContext
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
 
-# Carregar variáveis de ambiente
+# Carregar as variáveis de ambiente do arquivo .env
 load_dotenv()
 
-# Token e Chat ID
+# Acessar o token e chat_id de forma segura
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 bot = telegram.Bot(token=TOKEN)
 
-# Logging
+# Configurar logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -25,14 +25,14 @@ logger = logging.getLogger(__name__)
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text("✅ Bot de alertas cripto ativo!")
 
-# Buscar preço do Bitcoin
+# Preço atual do Bitcoin
 def get_bitcoin_price():
     url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=brl"
     r = requests.get(url)
     data = r.json()
     return data["bitcoin"]["brl"]
 
-# Buscar histórico de preços do Bitcoin
+# Histórico de preços para médias móveis
 def get_bitcoin_history():
     url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=brl&days=30"
     r = requests.get(url)
@@ -40,7 +40,7 @@ def get_bitcoin_history():
     prices = [p[1] for p in data["prices"]]
     return prices
 
-# Simular análise de altcoins
+# Simulação de altcoins com engajamento
 def analisar_altcoins():
     altcoins = [
         {"nome": "dogecoin", "engajamento": 87},
@@ -50,7 +50,7 @@ def analisar_altcoins():
     destaque = sorted(altcoins, key=lambda x: x["engajamento"], reverse=True)[:1]
     return destaque
 
-# Verificar cruzamento de médias móveis
+# Cruzamento de médias móveis
 def verificar_cruzamento_mm(prices):
     if len(prices) < 25:
         return "Dados insuficientes para médias móveis"
@@ -63,7 +63,7 @@ def verificar_cruzamento_mm(prices):
     else:
         return "➖ Médias móveis estão se cruzando"
 
-# Enviar alerta
+# Enviar alerta no Telegram
 async def enviar_alerta():
     try:
         preco = get_bitcoin_price()
@@ -82,24 +82,20 @@ async def enviar_alerta():
     except Exception as e:
         logger.error(f"Erro ao enviar alerta: {e}")
 
-# Agendar alertas
+# Agendar alertas automáticos
 async def agendar_alertas():
     scheduler = AsyncIOScheduler()
     scheduler.add_job(enviar_alerta, 'interval', hours=4)
     scheduler.start()
 
-# Função principal com loop correto para Railway
+# Iniciar bot e handlers
 async def main():
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
-
-    await application.initialize()
-    await application.start()
     await agendar_alertas()
-    await application.updater.start_polling()
-    await application.updater.idle()
+    await application.run_polling()
 
-# Rodar app
+# Execução principal
 if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
