@@ -11,7 +11,7 @@ from datetime import datetime
 # Carregar as variáveis de ambiente do arquivo .env
 load_dotenv()
 
-# Agora você pode acessar a chave de API e o chat_id de maneira segura
+# Acessar o token e chat_id de forma segura
 TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 bot = telegram.Bot(token=TOKEN)
@@ -21,18 +21,18 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Função start do bot
+# Comando /start
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text("✅ Bot de alertas cripto ativo!")
 
-# Função para buscar preço do Bitcoin
+# Preço atual do Bitcoin
 def get_bitcoin_price():
     url = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=brl"
     r = requests.get(url)
     data = r.json()
     return data["bitcoin"]["brl"]
 
-# Função para buscar histórico de preços (para calcular médias)
+# Histórico de preços para médias móveis
 def get_bitcoin_history():
     url = "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=brl&days=30"
     r = requests.get(url)
@@ -40,7 +40,7 @@ def get_bitcoin_history():
     prices = [p[1] for p in data["prices"]]
     return prices
 
-# Simulação de análise de altcoins com "potencial de pump"
+# Simulação de altcoins com engajamento
 def analisar_altcoins():
     altcoins = [
         {"nome": "dogecoin", "engajamento": 87},
@@ -50,7 +50,7 @@ def analisar_altcoins():
     destaque = sorted(altcoins, key=lambda x: x["engajamento"], reverse=True)[:1]
     return destaque
 
-# Cruzamento de médias móveis (simples de 7 e 25 dias)
+# Cruzamento de médias móveis
 def verificar_cruzamento_mm(prices):
     if len(prices) < 25:
         return "Dados insuficientes para médias móveis"
@@ -63,7 +63,7 @@ def verificar_cruzamento_mm(prices):
     else:
         return "➖ Médias móveis estão se cruzando"
 
-# Função para enviar alertas
+# Enviar alerta no Telegram
 async def enviar_alerta():
     try:
         preco = get_bitcoin_price()
@@ -78,32 +78,24 @@ async def enviar_alerta():
         for moeda in altcoins:
             mensagem += f"\n• {moeda['nome'].upper()} – Engajamento: {moeda['engajamento']}%"
 
-        # Envia o alerta para o Telegram
         await bot.send_message(chat_id=CHAT_ID, text=mensagem, parse_mode=telegram.ParseMode.MARKDOWN)
     except Exception as e:
         logger.error(f"Erro ao enviar alerta: {e}")
 
-# Agendador (usando AsyncIOScheduler para suportar asyncio)
+# Agendar alertas automáticos
 async def agendar_alertas():
     scheduler = AsyncIOScheduler()
     scheduler.add_job(enviar_alerta, 'interval', hours=4)
     scheduler.start()
 
-# Função principal para iniciar o bot
+# Iniciar bot e handlers
 async def main():
-    # Criar a aplicação do Telegram
     application = Application.builder().token(TOKEN).build()
-
-    # Adicionar o handler do comando /start
     application.add_handler(CommandHandler("start", start))
-
-    # Iniciar o agendador de alertas
     await agendar_alertas()
-
-    # Iniciar o bot
     await application.run_polling()
 
-# Remover o uso do asyncio.run(main()) e simplesmente chamar main()
+# Execução principal
 if __name__ == "__main__":
     import asyncio
-    asyncio.ensure_future(main())  # Isso garante que o loop de eventos do Telegram seja iniciado sem conflito
+    asyncio.run(main())
