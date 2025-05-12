@@ -6,6 +6,7 @@ import telegram
 from telegram.ext import Application, CommandHandler, CallbackContext
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
+import asyncio
 
 # Carregar as variáveis de ambiente do arquivo .env
 load_dotenv()
@@ -92,9 +93,9 @@ async def main():
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     await agendar_alertas()
-    await application.run_polling()
+    # Ao invés de `await application.run_polling()`, use o seguinte para não travar o loop:
+    await application.run_polling(stop_signals=None)
 
 # Execução principal
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(main())
