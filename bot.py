@@ -3,7 +3,7 @@ import logging
 import os
 from dotenv import load_dotenv
 import telegram
-from telegram import Update
+from telegram.ext import Application, CommandHandler, CallbackContext, Updater
 from telegram.ext import Application, CommandHandler, CallbackContext
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
